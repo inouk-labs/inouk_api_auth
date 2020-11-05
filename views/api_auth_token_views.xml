@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="ik_api_auth_token__formview" model="ir.ui.view">
+            <field name="name">ik.api_auth_token.formview</field>
+            <field name="model">ik.api_auth_token</field>
+            <field name="priority" eval="15"/>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="btn_generate_token" 
+                                string="Re-generate Token"
+                                type="object" 
+                                class="btn-warning"
+                                help="More to come" />
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                            <field name="description" placeholder="Enter description here."  />
+                        </div>
+                        <group>
+                            <field name="token_type"
+                                   attrs="{'readonly':[('id','!=',False)]}" />
+
+                            <field name="token_id"/>
+                            <field name="token_key"  
+                                   attrs="{'invisible':[('token_type','!=','hawk')]}" />
+                            <field name="user_id" />
+                            <field name="expiration_ts"  />
+                        </group>
+                        <notebook>
+                            <page string="IP Restrictions" >
+                                <group>
+                                    <field name="allowed_cidrs" 
+                                           attrs="{'required':[('token_type','!=','hawk')]}" />
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <field name="id" invisible="1" />
+                </form>
+            </field>
+        </record>
+
+        <!-- Tree view -->
+        <record id="ik_api_auth_token__tree_view" model="ir.ui.view">
+            <field name="name">ik.api_auth_token.tree_view</field>
+            <field name="model">ik.api_auth_token</field>
+            <field name="priority" eval="15"/>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="token_type"/>
+                    <field name="description"/>
+                    <field name="user_id"/>
+                    <field name="token_id"/>
+                </tree>
+            </field>
+        </record>
+        
+    <data>
+        <record id="ik_api_auth_token__actwindow" model="ir.actions.act_window">
+            <field name="name">Inouk API Authorization Token</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ik.api_auth_token</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context"></field>
+        </record>
+    </data>
+</odoo>
+

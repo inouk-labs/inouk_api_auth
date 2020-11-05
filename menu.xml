@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="api__mainmenu"
+              parent="inouk_core.inouk_topmenu"
+              sequence="3600"
+              name="API"
+              groups="base.group_user"/>
+
+        <menuitem id="api_auth_token__menuitem"
+                parent="api__mainmenu"
+                sequence="5000"
+                action="ik_api_auth_token__actwindow"
+                groups="base.group_user"/>
+
+
+
+</odoo>

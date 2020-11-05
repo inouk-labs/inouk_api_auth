@@ -1,0 +1,98 @@
+/*
+ * Add to class to slash fa icon
+ */
+ .ik-crossed-out:after{
+	content: '|';
+	color: red;
+	display: block;
+	font-weight: bold;
+	text-align: center;
+	font-size: 1.5em;
+	-webkit-transform: translate(2px, -9px) rotate(-45deg);
+	-moz-transform: translate(2px, -7px) rotate(-45deg);
+	-o-transform: translate(2px, -7px) rotate(-45deg);
+	-ms-transform: translate(2px, -7px) rotate(-45deg);
+}
+
+/*
+ * Increase forms label width 
+ * Usage: Add one of these classes to the inner group (the one containing fields).
+ * eg. <group class="ik_lw230" />
+ */
+
+.o_form_view .o_group.o_inner_group.ik_lw140 > tbody > tr > td.o_td_label {
+	min-width: 140px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw150 > tbody > tr > td.o_td_label {
+	min-width: 150px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw160 > tbody > tr > td.o_td_label {
+	min-width: 160px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw170 > tbody > tr > td.o_td_label {
+	min-width: 170px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw180 > tbody > tr > td.o_td_label {
+	min-width: 180px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw190 > tbody > tr > td.o_td_label {
+	min-width: 190px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw200 > tbody > tr > td.o_td_label {
+	min-width: 200px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw210 > tbody > tr > td.o_td_label {
+	min-width: 210px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw220 > tbody > tr > td.o_td_label {
+	min-width: 220px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw230 > tbody > tr > td.o_td_label {
+	min-width: 230px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw240 > tbody > tr > td.o_td_label {
+	min-width: 240px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw250 > tbody > tr > td.o_td_label {
+	min-width: 250px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw260 > tbody > tr > td.o_td_label {
+	min-width: 260px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw270 > tbody > tr > td.o_td_label {
+	min-width: 270px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw280 > tbody > tr > td.o_td_label {
+	min-width: 280px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw290 > tbody > tr > td.o_td_label {
+	min-width: 290px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw300 > tbody > tr > td.o_td_label {
+	min-width: 300px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw350 > tbody > tr > td.o_td_label {
+	min-width: 350px;
+}
+.o_form_view .o_group.o_inner_group.ik_lw360 > tbody > tr > td.o_td_label {
+	min-width: 360px;
+}
+
+
+
+/*
+ * Console Style for list view and form Text
+ * For list view, use: <field name="log_message" widget="html"/>
+ * For form view, use: <field name="log_message" colpsan="4" class="ik_console" />
+ */
+td.o_data_cell.o_list_text.ik_console {
+    font-family: monospace;
+}
+
+span.o_field_text.o_field_widget.ik_console {
+	font-family: monospace;
+}
+
+.oe_form_field.oe_form_field_html_text.o_field_widget.ik_console {
+	font-family: monospace;
+}
