@@ -1,3 +1,5 @@
+import sys
+import traceback
 import json
 import functools
 import logging
@@ -63,8 +65,8 @@ def lookup_credentials(client_id):
         'id': auth_token_obj.token_id,
         'key': auth_token_obj.token_key,
         'algorithm': 'sha256',
-        'xs_api_auth_token': auth_token_obj.id,
-        'xs_api_auth_token_uid': auth_token_obj.user_id.id
+        'ik_api_auth_token': auth_token_obj.id,
+        'ik_api_auth_token_uid': auth_token_obj.user_id.id
     }
 
 def ik_auth_authorize(func):
@@ -86,25 +88,33 @@ def ik_auth_authorize(func):
                     request.httprequest.query_string.decode('utf8')
                 )
                 #_logger.info("hawk_url=%s", hawk_url)
-                receiver = mohawk.Receiver(
-                    lookup_credentials,
-                    auth_header,
-                    hawk_url,
-                    request.httprequest.method,
-                    content=request.httprequest.data,
-                    content_type=request.httprequest.headers['Content-Type'],
-                    seen_nonce=None,  # TODO: Implement
-                    accept_untrusted_content=True  # Do not hash content
-                )
-                auth_token_obj = request.env['xs.api_auth_token'].sudo().browse(
-                    receiver.resource.credentials['xs_api_auth_token']
+                try:
+                    receiver = mohawk.Receiver(
+                        lookup_credentials,
+                        auth_header,
+                        hawk_url,
+                        request.httprequest.method,
+                        content=request.httprequest.data,
+                        content_type=request.httprequest.headers['Content-Type'],
+                        seen_nonce=None,  # TODO: Implement
+                        accept_untrusted_content=True  # Do not hash content
+                    )
+                except:
+                    exception_values = sys.exc_info()
+                    _logger.error("%s", exception_values[0])
+                    _logger.error("%s", exception_values[1])
+                    _logger.error("\n".join(traceback.format_exception(*exception_values)))
+                    raise AuthenticationError("Token Error")
+
+                auth_token_obj = request.env['ik.api_auth_token'].sudo().browse(
+                    receiver.resource.credentials['ik_api_auth_token']
                 )
                 request.uid = request.session.uid = auth_token_obj.user_id.id
                 return func(self, *args, **kwargs)
 
             elif auth_header[:6].lower() == 'bearer':
                 auth_token = auth_header.split(' ')[1]
-                auth_token_obj = request.env['xs.api_auth_token'].sudo().search(
+                auth_token_obj = request.env['ik.api_auth_token'].sudo().search(
                     [('token_id', '=', auth_token)],
                     order='id DESC', 
                     limit=1
@@ -142,7 +152,11 @@ IK_API_AUTH_SETTINGS = {}
 # Important
 # All route() must set save_session=False to prevent Odoo from returning a session_id cookie.
 #
-class XSAPIControllerV1(Controller):
+
+class LAPOUGEError(Exception):
+    pass
+
+class IKAPIControllerV1(Controller):
     """ This the generic api controller
     """
 
@@ -151,5 +165,6 @@ class XSAPIControllerV1(Controller):
     def ping(self):
         """ This is a test controller. 
         """
+        #raise LAPOUGEError("the boss")
         return "Hello World"
     

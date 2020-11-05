@@ -40,7 +40,7 @@ class IKAPIAuthToken(models.Model):
 
     @api.model
     def default_get(self, fields_list):
-        result = super(XSAPIAuthToken, self).default_get(fields_list)
+        result = super(IKAPIAuthToken, self).default_get(fields_list)
         if 'token_id' in fields_list:
             result['token_id'] = secrets.token_hex(30)
         if 'token_key' in fields_list:
@@ -50,7 +50,6 @@ class IKAPIAuthToken(models.Model):
                 result['token_key'] = None
         return result
     
-    @api.multi
     def check_ip_is_allowed(self, ip):
         self.ensure_one()
         networks = [ a_line.split('#')[0].strip() for a_line in self.allowed_cidrs.splitlines()]
@@ -65,7 +64,6 @@ class IKAPIAuthToken(models.Model):
                 return True
         return False
 
-    @api.multi
     def btn_generate_token(self):
         self.ensure_one()
         if self.token_type =='hawk':

@@ -62,7 +62,7 @@
         
     <data>
         <record id="ik_api_auth_token__actwindow" model="ir.actions.act_window">
-            <field name="name">Inouk API Authorization Token</field>
+            <field name="name">Authorization Tokens</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">ik.api_auth_token</field>
             <field name="view_mode">tree,form</field>

@@ -47,7 +47,7 @@ class IKJSONRequest(WebRequest):
         args = self.httprequest.args
         request = self.httprequest.get_data().decode(self.httprequest.charset)
         
-        # XSJsonRequest supports empty body.
+        # IKJSONRequest supports empty body.
         if not request:
             request = '{}'
 
@@ -106,7 +106,7 @@ class IKJSONRequest(WebRequest):
            :returns: an object of the form:
             {
                 'error_code': 200, <== mostly HTTP status code
-                'error_message': "Xsid Server Error",
+                'error_message': "Server Error",
                 'error_data': serialize_exception(exception)
             }           
         """
@@ -123,7 +123,7 @@ class IKJSONRequest(WebRequest):
             error = {
                 'error_code': 200,
                 'error_type': exception.__class__.__name__,
-                'error_message': error_data.get('message', "XSid Server Error"),
+                'error_message': error_data.get('message', "Server Error"),
                 'error_data': error_data,
                 'error_params': self.params,
                 'error_request_body': self.jsonrequest,
@@ -142,7 +142,7 @@ class IKJSONRequest(WebRequest):
             if isinstance(exception, SessionExpiredException):
                 error['http_status'] = 401
                 error['error_code'] = 401
-                error['error_message'] = "XSid Session Expired"
+                error['error_message'] = "Session Expired"
                 
             return self._json_response(error=error)
 
@@ -157,7 +157,7 @@ class IKJSONRequest(WebRequest):
 
 def inouk_get_request(self, httprequest):
     # deduce type of request
-    if ('xsid-static-token' in httprequest.headers or 'authorization' in httprequest.headers) and httprequest.mimetype in ("application/json",):
+    if ('authorization' in httprequest.headers) and httprequest.mimetype in ("application/json",):
         return IKJSONRequest(httprequest)
     return odoo_get_request_method(self, httprequest)
 
@@ -165,6 +165,6 @@ def inouk_json_request_patch():
     global odoo_get_request_method
     odoo_get_request_method = Root.get_request
     Root.get_request = inouk_get_request
-    _logger.critical("http.py::%s has been patched with %s.", 
-                     odoo_get_request_method,
-                     Root.get_request)
+    _logger.warning("http.py::%s has been patched with %s.", 
+                    odoo_get_request_method,
+                    Root.get_request)

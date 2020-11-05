@@ -3,9 +3,10 @@
 
     'summary': "Allows to protect Custom API with Hawk Token ",
     'description': """
+        Requires: mohawk==1.1.0
     """,
     'author': "@cmorisse",
-    'website': "https://fr.linkedin.com/in/cyrilmorisse,
+    'website': "https://fr.linkedin.com/in/cyrilmorisse",
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
@@ -24,7 +25,7 @@
         'security/ir.model.access.csv',
 
         # data
-#        'data/xs_delivery_mode.xml',
+        #'data/delivery_mode.xml',
         
         # Views
         'views/api_auth_token_views.xml',
@@ -38,7 +39,7 @@
     ],
     'license': 'OPL-1',
     'post_load': 'install_monkey_patches',
-    'application': True,
+    'application': False,
     'auto_install': False,
     'installable': True
 }
