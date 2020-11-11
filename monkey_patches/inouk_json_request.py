@@ -73,11 +73,17 @@ class IKJSONRequest(WebRequest):
             return result
             
         response = {}
-        if error is not None:
-            response.update(error)
 
         if result is not None:
-            response['data'] = result
+            if isinstance(result, dict):
+                response.update(result)
+            elif isinstance(result, list):
+                response = result
+            else:
+                response['result'] = result
+
+        if error is not None:
+            response.update(error)
 
         body = json.dumps(response, default=date_utils.json_default)
         
