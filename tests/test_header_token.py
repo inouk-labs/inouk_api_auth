@@ -2,6 +2,7 @@ import logging
 from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 from odoo.exceptions import UserError
+from odoo.addons.inouk_api_auth.controllers.auth import TOKEN_STATUS_CONTROLLER_URL
 from unittest.mock import patch, MagicMock
 
 _logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ class TestHeaderToken(TransactionCase):
         token._onchange_service_preset()
 
         self.assertEqual(token.header_name, 'X-Gitlab-Token')
-        self.assertEqual(token.header_prefix, '')
+        self.assertFalse(token.header_prefix)  # empty selection value
         self.assertEqual(token.url_param_name, 'access_token')
         self.assertTrue(token.support_url_param)
 
@@ -70,7 +71,7 @@ class TestHeaderToken(TransactionCase):
         token._onchange_service_preset()
 
         self.assertEqual(token.header_name, 'X-API-Key')
-        self.assertEqual(token.header_prefix, '')
+        self.assertFalse(token.header_prefix)  # empty selection value
         self.assertEqual(token.url_param_name, 'api_key')
         self.assertTrue(token.support_url_param)
 
@@ -107,10 +108,10 @@ class TestHeaderToken(TransactionCase):
         result = token.btn_regenerate_credentials()
 
         self.assertIsNotNone(token.static_token)
-        self.assertEqual(len(token.static_token), 60)  # secrets.token_hex(30) = 60 chars
-        self.assertIsInstance(result, dict)
-        self.assertEqual(result['type'], 'ir.actions.client')
-        self.assertIn('Authorization Token Generated', result['params']['title'])
+        # 'ikaa_' + secrets.token_urlsafe(32) = 5 + 43 chars
+        self.assertTrue(token.static_token.startswith('ikaa_'))
+        self.assertEqual(len(token.static_token), 48)
+        self.assertTrue(result)
 
     def test_curl_generation_header_mode(self):
         """Test cURL command generation in header mode"""
@@ -124,13 +125,15 @@ class TestHeaderToken(TransactionCase):
             'user_id': self.user.id
         })
 
-        with patch('odoo.addons.inouk_api_auth.models.api_auth_token.urljoin') as mock_urljoin:
-            mock_urljoin.return_value = 'http://test.com/api/status'
+        self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'http://test.com')
+        token.show_password = True
 
-            curl_cmd = token.compute__header_test_curl()
+        curl_cmd = token.compute__header_test_curl()
 
-            self.assertIn("curl --header 'X-API-Key: test_token_123'", curl_cmd)
-            self.assertIn('http://test.com/api/status', curl_cmd)
+        # The token travels in an environment variable, the header names it.
+        self.assertIn('export IKAA_TEST_TOKEN="test_token_123"', curl_cmd)
+        self.assertIn('curl --header "X-API-Key: $IKAA_TEST_TOKEN"', curl_cmd)
+        self.assertIn('http://test.com' + TOKEN_STATUS_CONTROLLER_URL + '/bearer', curl_cmd)
 
     def test_curl_generation_url_param_mode(self):
         """Test cURL command generation in URL parameter mode"""
@@ -145,12 +148,14 @@ class TestHeaderToken(TransactionCase):
             'user_id': self.user.id
         })
 
-        with patch('odoo.addons.inouk_api_auth.models.api_auth_token.urljoin') as mock_urljoin:
-            mock_urljoin.return_value = 'http://test.com/api/status'
+        self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'http://test.com')
+        token.show_password = True
 
-            curl_cmd = token.compute__header_test_curl()
+        curl_cmd = token.compute__header_test_curl()
 
-            self.assertIn('http://test.com/api/status?api_key=test_token_456', curl_cmd)
+        self.assertIn('export IKAA_TEST_TOKEN="test_token_456"', curl_cmd)
+        self.assertIn(
+            'http://test.com' + TOKEN_STATUS_CONTROLLER_URL + '/bearer?api_key=$IKAA_TEST_TOKEN', curl_cmd)
 
     def test_python_examples_generation(self):
         """Test Python examples generation for different configurations"""
@@ -167,15 +172,14 @@ class TestHeaderToken(TransactionCase):
             'user_id': self.user.id
         })
 
-        with patch('odoo.addons.inouk_api_auth.models.api_auth_token.urljoin') as mock_urljoin:
-            mock_urljoin.return_value = 'http://test.com/api/status'
+        examples = token._generate_header_python_examples('http://test.com')
 
-            examples = token._generate_header_python_examples('http://test.com')
-
-            self.assertIn('Bearer Token Authentication', examples)
-            self.assertIn("'Authorization': 'Bearer test_token_789'", examples)
-            self.assertIn("'access_token': 'test_token_789'", examples)
-            self.assertIn('import requests', examples)
+        # The examples read the token from the environment, never embed it.
+        self.assertIn('Bearer Token Authentication', examples)
+        self.assertIn("'Authorization': 'Bearer ' + token", examples)
+        self.assertIn("'access_token': token", examples)
+        self.assertIn('import requests', examples)
+        self.assertNotIn('test_token_789', examples)
 
     def test_gitlab_token_examples(self):
         """Test GitLab-specific examples generation"""
@@ -193,7 +197,8 @@ class TestHeaderToken(TransactionCase):
         examples = token._generate_header_python_examples('http://test.com')
 
         self.assertIn('GitLab Webhook Authentication', examples)
-        self.assertIn("'X-Gitlab-Token': 'gitlab_token_123'", examples)
+        self.assertIn("'X-Gitlab-Token': '' + token", examples)
+        self.assertNotIn('gitlab_token_123', examples)
         self.assertIn('GitLab webhook secret tokens', examples)
 
     def test_api_key_examples(self):
@@ -213,7 +218,8 @@ class TestHeaderToken(TransactionCase):
         examples = token._generate_header_python_examples('http://test.com')
 
         self.assertIn('API Key Authentication', examples)
-        self.assertIn("'X-API-Key': 'api_key_456'", examples)
+        self.assertIn("'X-API-Key': '' + token", examples)
+        self.assertNotIn('api_key_456', examples)
         self.assertNotIn('URL Parameter', examples)  # Should not include URL param section
         self.assertIn('API keys are often service-specific', examples)
 
