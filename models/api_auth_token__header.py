@@ -27,7 +27,7 @@ class InoukAPIAuthToken(models.Model):
         return f"{prefix}{token}"
 
 
-    def btn_regenerate_credentials(self):
+    def regenerate_credentials(self):
         """Regenerate credentials for header-based authentication"""
         self.ensure_one()
 
@@ -36,7 +36,7 @@ class InoukAPIAuthToken(models.Model):
             self.static_token = self.generate_credentials_header()
             return True
         else:
-            return super().btn_regenerate_credentials()
+            return super().regenerate_credentials()
 
     @api.model
     def default_get(self, fields_list):

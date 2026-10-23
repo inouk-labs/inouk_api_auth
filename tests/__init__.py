@@ -6,3 +6,5 @@ from . import test_header_token
 from . import test_header_auth
 from . import test_plain_json
 from . import test_oauth21  # OAuth 2.1 Authorization Code + PKCE tests
+from . import test_regenerate_credentials
+

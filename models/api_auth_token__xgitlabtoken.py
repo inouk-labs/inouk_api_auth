@@ -24,7 +24,7 @@ class InoukAPIAuthToken(models.Model):
         ondelete={'xgitlabtoken': 'cascade'}
     )
 
-    def btn_regenerate_credentials(self):
+    def regenerate_credentials(self):
         """Regenerate credentials - X-Gitlab-Token specific implementation"""
         self.ensure_one()
 
@@ -34,7 +34,7 @@ class InoukAPIAuthToken(models.Model):
             # NO notification - just update the field
             return True
         else:
-            return super().btn_regenerate_credentials()
+            return super().regenerate_credentials()
 
     def compute__xgitlabtoken_test_curl(self):
         """Generate X-Gitlab-Token curl command for testing"""

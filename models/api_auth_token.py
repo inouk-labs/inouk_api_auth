@@ -182,9 +182,18 @@ class InoukAPIAuthToken(models.Model):
         return result
 
     def btn_regenerate_credentials(self):
-        """Base regenerate credentials method - overridden by type-specific implementations"""
+        """Button action: regenerate the token's credentials (STD-01). Code calls
+        `regenerate_credentials()`, the override point."""
+        return self.regenerate_credentials()
+
+    def regenerate_credentials(self):
+        """Regenerate the token's credentials. Each token type overrides it for its own
+        `token_type` and hands the others to super().
+
+        :returns: True.
+        :raises UserError: a token type that implements no regeneration.
+        """
         self.ensure_one()
-        # Default implementation - should be overridden by inherited models
         raise UserError(_("Credential regeneration not implemented for token type: %s") % self.token_type)
 
     def btn_refresh(self):
