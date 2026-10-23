@@ -37,6 +37,17 @@ RFC 7617 compliant Basic authentication:
 - Secure password hashing with verification
 - Username-based token lookup
 
+## Regenerating a token's credentials
+
+`ik.api_auth_token.regenerate_credentials()` mints new credentials for the token's type and
+returns True; the **Regenerate** button (`btn_regenerate_credentials()`) only calls it. Code
+calls `regenerate_credentials()`, never the button. **An addon that adds a token type
+overrides `regenerate_credentials()`** for its own `token_type` and hands the others to
+`super()`, as the six types of this module do (bearer, header, xgitlabtoken, httpbasicauth,
+awssigv4, oauth_client). An override of the button alone serves the button only: code that
+calls `regenerate_credentials()` on that type raises "Credential regeneration not implemented".
+Since version 2.1.0.
+
 ## OAuth 2.0 / 2.1 Authentication
 
 This module supports three OAuth flows for different use cases:
