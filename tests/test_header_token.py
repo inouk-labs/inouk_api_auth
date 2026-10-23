@@ -3,7 +3,7 @@ from odoo.tests.common import TransactionCase
 from odoo.tests import tagged
 from odoo.exceptions import UserError
 from odoo.addons.inouk_api_auth.controllers.auth import TOKEN_STATUS_CONTROLLER_URL
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 _logger = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ class TestHeaderToken(TransactionCase):
         })
 
         # Test token generation
-        result = token.btn_regenerate_credentials()
+        result = token.regenerate_credentials()
 
         self.assertIsNotNone(token.static_token)
         # 'ikaa_' + secrets.token_urlsafe(32) = 5 + 43 chars
@@ -126,8 +126,13 @@ class TestHeaderToken(TransactionCase):
         })
 
         self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'http://test.com')
-        token.show_password = True
 
+        # Masked until the user asks to see it
+        curl_cmd = token.compute__header_test_curl()
+        self.assertNotIn('test_token_123', curl_cmd)
+        self.assertIn('export IKAA_TEST_TOKEN="your_token_here"', curl_cmd)
+
+        token.show_password = True
         curl_cmd = token.compute__header_test_curl()
 
         # The token travels in an environment variable, the header names it.
@@ -149,8 +154,11 @@ class TestHeaderToken(TransactionCase):
         })
 
         self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'http://test.com')
-        token.show_password = True
 
+        curl_cmd = token.compute__header_test_curl()
+        self.assertNotIn('test_token_456', curl_cmd)
+
+        token.show_password = True
         curl_cmd = token.compute__header_test_curl()
 
         self.assertIn('export IKAA_TEST_TOKEN="test_token_456"', curl_cmd)

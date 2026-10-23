@@ -193,13 +193,15 @@ class TestAuthMethods(TransactionCase):
             # _compromise_token commits so that the mark survives the request's rollback;
             # a test cursor refuses a commit. The refusal is caught by hand: Odoo's
             # assertRaises rolls back to a savepoint, which would undo the very write checked below.
-            with patch.object(self.env.cr, 'commit'):
+            with patch.object(self.env.cr, 'commit') as mock_commit:
                 try:
                     ir_http._auth_method_ik_bearer()
                 except AccessDenied:
                     pass
                 else:
                     self.fail("AccessDenied expected")
+            # The mark is committed, or the AccessDenied would roll it back
+            mock_commit.assert_called_once()
 
             # Check token was compromised
             self.test_token.invalidate_recordset()

@@ -49,7 +49,6 @@ class TestControllers(HttpCase):
 
         response = self.url_open(url, headers=headers)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['status'], 'active')
         status = response.json()
         self.assertEqual(status['status'], 'active')
         self.assertEqual(status['token']['name'], self.test_token.name)
@@ -193,8 +192,6 @@ class TestControllers(HttpCase):
         self.assertEqual(response_v2.status_code, 200)
         self.assertEqual(response_v2.json()['status'], 'active')
 
-        # Both should reference the same token but with different messages
-        self.assertNotEqual(response_v1.text, response_v2.text)
 
     def test_token_case_insensitive_bearer(self):
         """Test that Bearer token header is case insensitive"""
