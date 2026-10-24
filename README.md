@@ -1,5 +1,11 @@
 # Inouk API Auth
 
+> **This repository is maintained on GitLab:** <https://gitlab.com/cmorisse/inouk_api_auth>
+>
+> <https://github.com/inouk-labs/inouk_api_auth> is a read-only mirror, updated from GitLab on
+> every push to a release branch. A commit pushed to GitHub is overwritten by the next update:
+> open issues and merge requests on GitLab.
+
 Token-based API authentication system with plain JSON support for Odoo.
 
 **License**: Elastic License v2.0 — see [`LICENSE`](LICENSE) for the full text.
