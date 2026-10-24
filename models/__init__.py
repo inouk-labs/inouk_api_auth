@@ -1,3 +1,4 @@
+from . import log_safety  # Import first: installs the access log filters
 from . import json_plain_patch  # Import first to apply monkey-patch
 from . import api_auth_token
 from . import api_auth_token__header  # New unified header implementation

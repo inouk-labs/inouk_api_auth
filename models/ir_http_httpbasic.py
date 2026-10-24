@@ -36,9 +36,11 @@ class IrHttpBasic(models.AbstractModel):
             encoded_credentials = auth_header.split(' ', 1)[1]
             decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
             username, password = decoded_credentials.split(':', 1)
-            _logger.info("HTTP Basic auth - Username: %s", username)
+            # Nothing derived from the decoded user name is written: a client that swaps user and
+            # password would log the password.
+            _logger.info("HTTP Basic auth - credential received")
         except (IndexError, ValueError, UnicodeDecodeError) as e:
-            _logger.warning("HTTP Basic auth - Failed to decode credentials: %s", e)
+            _logger.warning("HTTP Basic auth - Failed to decode credentials (%s)", type(e).__name__)
             raise AccessDenied("Invalid Basic Authorization format.")
 
         # Search for token in database by username
@@ -49,7 +51,7 @@ class IrHttpBasic(models.AbstractModel):
 
         # Decision tree based on token status
         if not token_obj:
-            _logger.warning("HTTP Basic authentication failed - no token found for username: %s", username)
+            _logger.warning("HTTP Basic authentication failed - no token found for the user name received")
             raise AccessDenied("Invalid credentials.")
         elif token_obj.is_compromised:
             _logger.warning("HTTP Basic authentication failed - token %s (ID: %s) is compromised",
@@ -66,7 +68,7 @@ class IrHttpBasic(models.AbstractModel):
             raise AccessDenied("Invalid credentials.")
 
         if token_obj.httpbasicauth_password != password:
-            _logger.warning("HTTP Basic authentication failed - invalid password for username: %s", username)
+            _logger.warning("HTTP Basic authentication failed - invalid password for token %s (ID: %s)", token_obj.name, token_obj.id)
             raise AccessDenied("Invalid credentials.")
 
         # Check if token was sent over HTTPS

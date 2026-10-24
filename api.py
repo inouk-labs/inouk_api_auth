@@ -14,6 +14,8 @@ from odoo.http import request, route, Controller
 from odoo.exceptions import AccessDenied
 from odoo.tools.safe_eval import safe_eval
 
+from .models.log_safety import authorization_scheme, token_fingerprint
+
 
 
 _logger = logging.getLogger(__name__)
@@ -53,7 +55,7 @@ def ik_authorize(func):
         # Check Sender for token auth
         sender_ip = request.httprequest.environ.get('REMOTE_ADDR')
         http_referer = request.httprequest.environ.get('HTTP_REFERER')
-        _logger.debug("HTTP_REFERER = %s", http_referer)
+        _logger.debug("HTTP_REFERER received: %s", bool(http_referer))
         requested_url = request.httprequest.url
         _up = urlparse(requested_url)
         _rp = urlparse(http_referer)
@@ -65,19 +67,18 @@ def ik_authorize(func):
         token_string = request.httprequest.headers.get('Authorization')
         if token_string:
             token_type = 'bearer'
-            _logger.info("Received header 'Authorization: %s'", token_string)
-
+            token_source = "Authorization header, scheme %s" % authorization_scheme(token_string)
         else:
             token_string = request.httprequest.headers.get('X-Gitlab-Token')
             if token_string:
                 token_type = 'xgitlabtoken'
-                _logger.info("Received header 'X-Gitlab-Token: %s'", token_string)
-
+                token_source = "X-Gitlab-Token header"
             else:
                 # Odoo 18: use httprequest.args instead of request.params
                 token_string = request.httprequest.args.get('access_token')
                 if token_string:
                     token_type = 'bearer'
+                    token_source = "access_token URL parameter"
                 else:
                     raise AccessDenied("Missing required Authorization.")
 
@@ -85,6 +86,7 @@ def ik_authorize(func):
             static_token = token_string.split()[1]
         else:
             static_token = token_string.strip()
+        _logger.info("Received a credential: %s, fingerprint %s", token_source, token_fingerprint(request.env, static_token))
 
         token_obj = request.env['ik.api_auth_token'].sudo().search(
             [
