@@ -27,14 +27,14 @@ class IrHttpExtension(models.AbstractModel):
 
         # Check if current request is not HTTPS
         if parsed_url.scheme != 'https':
-            _logger.debug("Request URL is not HTTPS: %s", requested_url)
+            _logger.debug("Request URL is not HTTPS (scheme %s)", parsed_url.scheme)
             return True
 
         # Check if referer is present and not HTTPS
         if http_referer:
             parsed_referer = urlparse(http_referer)
             if parsed_referer.scheme != 'https':
-                _logger.debug("HTTP_REFERER is not HTTPS: %s", http_referer)
+                _logger.debug("HTTP_REFERER is not HTTPS (scheme %s)", parsed_referer.scheme)
                 return True
 
         return False

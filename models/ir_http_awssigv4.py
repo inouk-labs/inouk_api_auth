@@ -26,8 +26,7 @@ class IrHttpAwsSigV4(models.AbstractModel):
         headers = dict(request.httprequest.headers)
         body = request.httprequest.get_data()
 
-        _logger.info("AWS SigV4 auth - Method: %s, URL: %s", method, url)
-        _logger.info("AWS SigV4 auth - Headers: %s", headers)
+        _logger.info("AWS SigV4 auth - Method: %s, path: %s", method, request.httprequest.path)
 
         # Check for required headers
         auth_header = headers.get('Authorization', '')
@@ -56,7 +55,6 @@ class IrHttpAwsSigV4(models.AbstractModel):
                 raise AccessDenied("Missing Credential in Authorization header.")
             access_key_id = credential_part.split('/')[0]
             _logger.info("AWS SigV4 auth - Extracted access key ID: %s", access_key_id)
-            _logger.info("AWS SigV4 auth - Credential part: %s", credential_part)
         except (IndexError, AttributeError):
             raise AccessDenied("Invalid Authorization header format.")
 
@@ -90,9 +88,10 @@ class IrHttpAwsSigV4(models.AbstractModel):
         except IndexError:
             raise AccessDenied("Invalid credential format in Authorization header.")
 
-        # Validate signature (enable debug logging in development)
-        # TODO: Make this configurable via settings
-        debug_logging = False  # Set to True for debugging signature issues
+        # Validate signature. TODO: make debug_logging configurable via settings.
+        # True writes the canonical request and the string to sign at DEBUG to diagnose a
+        # refused signature; the signatures themselves are never written.
+        debug_logging = False
         is_valid = cls._validate_awssigv4_signature(
             headers=headers,
             method=method,
@@ -163,7 +162,7 @@ class IrHttpAwsSigV4(models.AbstractModel):
             secret_access_key (str): AWS secret access key
             region (str): AWS region
             service (str): AWS service name
-            debug_logging (bool): Enable detailed debug logging
+            debug_logging (bool): Write the canonical request and the string to sign at DEBUG (never the signatures)
 
         Returns:
             bool: True if signature is valid, False otherwise
@@ -182,5 +181,5 @@ class IrHttpAwsSigV4(models.AbstractModel):
                 debug_logging=debug_logging
             )
         except Exception as e:
-            _logger.warning("AWS SigV4 signature validation failed: %s", e)
+            _logger.warning("AWS SigV4 signature validation failed (%s)", type(e).__name__)
             return False

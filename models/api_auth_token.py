@@ -7,6 +7,7 @@ from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 from odoo.exceptions import UserError
 
 from ..controllers.auth import TEST_CONTROLLER_URL
+from .log_safety import register_secret_param, token_fingerprint
 
 _logger = logging.getLogger(__name__)
 
@@ -173,6 +174,38 @@ class InoukAPIAuthToken(models.Model):
     _sql_constraints = [
         ('token_uniq', "UNIQUE(static_token, token_type)", "Token must be unique!")
     ]
+
+    def log_fingerprint(self):
+        """The fingerprint the server log shows for this token (see log_safety)."""
+        self.ensure_one()
+        return token_fingerprint(self.env, self.static_token)
+
+    def _register_url_param_names(self):
+        """Mask the URL parameter names of these tokens in the access log."""
+        for token_obj in self.sudo():
+            if token_obj.token_type == 'header' and token_obj.actual_url_param_name:
+                register_secret_param(token_obj.actual_url_param_name)
+
+    def _register_hook(self):
+        """A parameter name stored before the server started is masked from the first request."""
+        res = super()._register_hook()
+        try:
+            with self.env.cr.savepoint():
+                self.sudo().search([('token_type', '=', 'header')])._register_url_param_names()
+        except Exception:  # e.g. the columns are not created yet during an upgrade
+            _logger.warning("Could not read the URL parameter names of the header tokens", exc_info=True)
+        return res
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._register_url_param_names()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        self._register_url_param_names()
+        return res
 
     @api.model
     def default_get(self, fields_list):

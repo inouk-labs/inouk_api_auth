@@ -5,6 +5,8 @@ from odoo import models, fields
 from odoo.http import request
 from odoo.exceptions import AccessDenied
 
+from .log_safety import register_secret_param, token_fingerprint
+
 _logger = logging.getLogger(__name__)
 
 
@@ -119,8 +121,6 @@ class IrHttpHeader(models.AbstractModel):
             if not header_value:
                 continue
 
-            _logger.info("Received header '%s: %s'", header_name, header_value)
-
             # Extract token based on prefix
             extracted_token = None
             if prefix and header_value.startswith(prefix):
@@ -129,7 +129,9 @@ class IrHttpHeader(models.AbstractModel):
                 extracted_token = header_value.strip()
 
             if not extracted_token:
+                _logger.info("Received header '%s': it does not carry the expected prefix %r", header_name, prefix)
                 continue
+            _logger.info("Received header '%s': fingerprint %s", header_name, token_fingerprint(request.env, extracted_token))
 
             # Find matching token in database
             token_obj = cls._find_matching_token(
@@ -164,6 +166,7 @@ class IrHttpHeader(models.AbstractModel):
                 continue
 
             params_to_check.add(param_name)
+            register_secret_param(param_name)  # its value is masked in the access log
 
         # Check each parameter (Odoo 18: use httprequest.args instead of request.params)
         for param_name in params_to_check:
@@ -172,7 +175,7 @@ class IrHttpHeader(models.AbstractModel):
             if not param_value:
                 continue
 
-            _logger.info("Received URL parameter '%s'", param_name)
+            _logger.info("Received URL parameter '%s': fingerprint %s", param_name, token_fingerprint(request.env, param_value))
 
             # Find matching token that allows this parameter
             token_obj = cls._find_matching_url_param_token(

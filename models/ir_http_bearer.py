@@ -5,6 +5,8 @@ from odoo import models, fields
 from odoo.http import request
 from odoo.exceptions import AccessDenied
 
+from .log_safety import authorization_scheme, token_fingerprint
+
 _logger = logging.getLogger(__name__)
 
 
@@ -36,7 +38,7 @@ class IrHttpBearer(models.AbstractModel):
         if auth_header:
             token_string = auth_header
             token_type = 'bearer'
-            _logger.info("Received header 'Authorization: %s'", token_string)
+            token_source = "Authorization header, scheme %s" % authorization_scheme(token_string)
 
         # Check X-Gitlab-Token header (GitLab webhook compatibility)
         if not token_string:
@@ -44,7 +46,7 @@ class IrHttpBearer(models.AbstractModel):
             if gitlab_token:
                 token_string = gitlab_token
                 token_type = 'xgitlabtoken'
-                _logger.info("Received header 'X-Gitlab-Token: %s'", token_string)
+                token_source = "X-Gitlab-Token header"
 
         # Check URL parameter as last resort (Odoo 18: use httprequest.args)
         token_from_url = False
@@ -53,6 +55,7 @@ class IrHttpBearer(models.AbstractModel):
             if token_string:
                 token_type = 'bearer'
                 token_from_url = True
+                token_source = "access_token URL parameter"
             else:
                 raise AccessDenied("Missing required Authorization.")
 
@@ -61,6 +64,7 @@ class IrHttpBearer(models.AbstractModel):
             static_token = token_string.split()[1]
         else:
             static_token = token_string.strip()
+        _logger.info("Received a credential: %s, fingerprint %s", token_source, token_fingerprint(request.env, static_token))
 
         # Search for token in database (single search, no validity filters)
         # Bearer and X-Gitlab-Token are unified - search for both types

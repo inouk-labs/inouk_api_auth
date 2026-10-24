@@ -93,8 +93,7 @@ class InoukAPIAuthControllerV1(Controller):
     def hello(self, *args, **kwargs):
         """ A dump controller to test token using deprecated decorator.
         """
-        _logger.info("received args: %s", args )
-        _logger.info("received kwargs: %s", kwargs )
+        _logger.info("hello: %d path arguments, %d query parameters", len(args), len([k for k in kwargs if k != 'token_obj']))
         return "Hello ! Call Ok. Received %s\n" % kwargs['token_obj']
 
     @route(TOKEN_STATUS_CONTROLLER_URL + '/bearer', methods=['GET'], type='http', auth='ik_bearer', csrf=False, save_session=False)
@@ -121,8 +120,7 @@ class InoukAPIAuthControllerV1(Controller):
         Returns comprehensive token information in JSON format.
         Supports all authentication methods: Bearer, AWS SigV4, HTTP Basic.
         """
-        _logger.info("Token status check - received args: %s", args)
-        _logger.info("Token status check - received kwargs: %s", kwargs)
+        _logger.info("Token status check - %d path arguments, %d query parameters", len(args), len([k for k in kwargs if k != 'token_obj']))
 
         # Get auth context created by authentication method
         auth_context = getattr(request, 'inouk_api_auth', None)

@@ -1,3 +1,4 @@
+import re
 import hashlib
 import hmac
 import logging
@@ -191,6 +192,18 @@ def _encode_canonical_uri(path, service=''):
     # return quote(path, safe='/')
 
 
+def _redact_session_secrets(canonical_request):
+    """The canonical request without the values that are credentials: a signed session token
+    header or query parameter."""
+    lines = []
+    for line in canonical_request.split('\n'):
+        if line.lower().startswith(('x-amz-security-token:', 'authorization:',
+                                          'x-amz-server-side-encryption-customer-key', 'x-amz-copy-source-server-side-encryption-customer-key')):
+            line = line.split(':', 1)[0] + ':***'
+        lines.append(re.sub(r'(?i)(X-Amz-(?:Security-Token|Signature))=[^&\s]*', r'\1=***', line))
+    return '\n'.join(lines)
+
+
 def validate_aws_signature(headers, method, url, body, access_key_id, secret_access_key, region, service, max_age_seconds=900, debug_logging=False):
     """Validate AWS SigV4 signature by manually recreating the signing process
 
@@ -204,7 +217,7 @@ def validate_aws_signature(headers, method, url, body, access_key_id, secret_acc
         region (str): AWS region
         service (str): AWS service name
         max_age_seconds (int): Maximum age of signature in seconds (default: 15 minutes)
-        debug_logging (bool): Enable detailed debug logging (default: False)
+        debug_logging (bool): Write the canonical request and the string to sign at DEBUG (default: False). The signatures are never written.
 
     Returns:
         bool: True if signature is valid, False otherwise
@@ -252,7 +265,7 @@ def validate_aws_signature(headers, method, url, body, access_key_id, secret_acc
             cred_parts = credential_part.split('/')
 
             if len(cred_parts) != 5:
-                _logger.error("Invalid credential format: %s", credential_part)
+                _logger.error("Invalid credential format (%d parts)", len(cred_parts))
                 return False
 
             auth_access_key = cred_parts[0]
@@ -281,7 +294,7 @@ def validate_aws_signature(headers, method, url, body, access_key_id, secret_acc
             signature = auth_header.split('Signature=')[1]
 
         except (IndexError, AttributeError) as e:
-            _logger.error("Error parsing authorization header: %s", e)
+            _logger.error("Error parsing authorization header (%s)", type(e).__name__)
             return False
 
         # Parse URL components
@@ -327,15 +340,13 @@ def validate_aws_signature(headers, method, url, body, access_key_id, secret_acc
             canonical_headers, signed_headers, payload_hash
         )
 
-        if debug_logging:
-            _logger.info("AWS SigV4 canonical request:\n%s", canonical_request)
-
         # Create string to sign
         credential_scope = f"{date_stamp}/{region}/{service}/aws4_request"
         string_to_sign = _create_string_to_sign(date_header, credential_scope, canonical_request)
 
         if debug_logging:
-            _logger.info("AWS SigV4 string to sign:\n%s", string_to_sign)
+            _logger.debug("AWS SigV4 canonical request:\n%s", _redact_session_secrets(canonical_request))
+            _logger.debug("AWS SigV4 string to sign:\n%s", string_to_sign)
 
         # Derive signing key
         signing_key = _derive_signing_key(secret_access_key, date_stamp, region, service)
@@ -345,11 +356,6 @@ def validate_aws_signature(headers, method, url, body, access_key_id, secret_acc
 
         # Secure logging - only log signature validation result and metadata
         signature_matches = signature == expected_signature
-        if debug_logging:
-            # In debug mode, log signatures (but never the secret key)
-            _logger.info("AWS SigV4 validation - Original signature: %s", signature)
-            _logger.info("AWS SigV4 validation - Expected signature: %s", expected_signature)
-
         _logger.info("AWS SigV4 validation - Signatures match: %s, Access Key: %s, Region: %s, Service: %s",
                     signature_matches, access_key_id, region, service)
 

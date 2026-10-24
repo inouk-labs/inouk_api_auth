@@ -388,8 +388,9 @@ class OAuthController(http.Controller):
             if state:
                 redirect_url += f"&state={state}"
 
-            # DEBUG: Log final redirect URL
-            _logger.info("OAuth authorize: Redirecting to '%s'", redirect_url)
+            # Only redirect_uri is logged: redirect_url carries the authorization code, a
+            # credential that must not reach the log.
+            _logger.info("OAuth authorize: Redirecting to '%s'", redirect_uri)
 
             # Show success page with delayed redirect via JavaScript.
             # This provides better UX than a direct 302 redirect which leaves
