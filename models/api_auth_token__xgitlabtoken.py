@@ -50,9 +50,9 @@ class InoukAPIAuthToken(models.Model):
         token_status_url = urljoin(_base_url, TOKEN_STATUS_CONTROLLER_URL + '/bearer')
 
         if self.test_use_header:
-            return f"# Set environment variable:\\n# export GITLAB_TOKEN=\"your_token_here\"\\n\\ncurl --header \"X-Gitlab-Token: $GITLAB_TOKEN\" \"{token_status_url}\""
+            return f"# Set environment variable:\n# export GITLAB_TOKEN=\"your_token_here\"\n\ncurl --header \"X-Gitlab-Token: $GITLAB_TOKEN\" \"{token_status_url}\""
         else:
-            return f"# Set environment variable:\\n# export GITLAB_TOKEN=\"your_token_here\"\\n\\ncurl \"{token_status_url}?access_token=$GITLAB_TOKEN\""
+            return f"# Set environment variable:\n# export GITLAB_TOKEN=\"your_token_here\"\n\ncurl \"{token_status_url}?access_token=$GITLAB_TOKEN\""
 
     def compute__test_curl(self):
         """Override to handle X-Gitlab-Token cURL generation"""
