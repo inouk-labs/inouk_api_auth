@@ -42,7 +42,7 @@ class InoukAPIAuthToken(models.Model):
         help="Password for HTTP Basic Authentication"
     )
 
-    def btn_regenerate_credentials(self):
+    def regenerate_credentials(self):
         """Regenerate HTTP Basic credentials inline"""
         self.ensure_one()
 
@@ -57,7 +57,7 @@ class InoukAPIAuthToken(models.Model):
             # NO notification - just update the fields
             return True
         else:
-            return super().btn_regenerate_credentials()
+            return super().regenerate_credentials()
 
     def compute__httpbasicauth_test_curl(self):
         """Generate HTTP Basic auth curl command for testing"""

@@ -63,7 +63,7 @@ class InoukAPIAuthToken(models.Model):
         help="OAuth Client that generated this Bearer token"
     )
 
-    def btn_regenerate_credentials(self):
+    def regenerate_credentials(self):
         """Regenerate OAuth client_id and client_secret."""
         self.ensure_one()
 
@@ -76,7 +76,7 @@ class InoukAPIAuthToken(models.Model):
             self.oauth_client_secret = secrets.token_urlsafe(32)
             return True
         else:
-            return super().btn_regenerate_credentials()
+            return super().regenerate_credentials()
 
     def generate_access_token(self):
         """Generate a new header-based Bearer token for this OAuth client.

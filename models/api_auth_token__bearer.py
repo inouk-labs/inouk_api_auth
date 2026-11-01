@@ -47,7 +47,7 @@ class InoukAPIAuthToken(models.Model):
         return result
 
 
-    def btn_regenerate_credentials(self):
+    def regenerate_credentials(self):
         """Regenerate credentials - Bearer token specific implementation"""
         self.ensure_one()
         if self.token_type == 'bearer':
@@ -55,7 +55,7 @@ class InoukAPIAuthToken(models.Model):
             self.static_token = self.generate_credentials_bearer()
             return True
         else:
-            return super().btn_regenerate_credentials()
+            return super().regenerate_credentials()
 
     def compute__bearer_test_curl(self):
         """Generate Bearer token curl command for testing"""

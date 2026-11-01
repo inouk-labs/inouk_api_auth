@@ -43,7 +43,7 @@ class InoukAPIAuthToken(models.Model):
         help="AWS Secret Access Key for Signature Version 4 authentication (40 characters)"
     )
 
-    def btn_regenerate_credentials(self):
+    def regenerate_credentials(self):
         """Regenerate credentials - AWS SigV4 specific implementation"""
         self.ensure_one()
 
@@ -58,7 +58,7 @@ class InoukAPIAuthToken(models.Model):
             # NO notification - just update the fields
             return True
         else:
-            return super().btn_regenerate_credentials()
+            return super().regenerate_credentials()
 
     def compute__awssigv4_test_curl(self):
         """Generate AWS SigV4 signed curl command for testing"""

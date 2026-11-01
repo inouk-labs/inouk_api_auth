@@ -126,7 +126,7 @@ class TestAPIAuthToken(TransactionCase):
         })
         original_token = token.static_token
 
-        token.btn_regenerate_credentials()
+        token.regenerate_credentials()
 
         self.assertTrue(token.static_token.startswith('ikaa_'))
         self.assertNotEqual(token.static_token, original_token)
@@ -231,7 +231,7 @@ class TestAPIAuthToken(TransactionCase):
         })
 
         # Generate AWS keys
-        aws_token.btn_regenerate_credentials()
+        aws_token.regenerate_credentials()
 
         # Check key format
         self.assertTrue(aws_token.awssigv4_access_key_id.startswith('AKIA'))
